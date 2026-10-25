@@ -7,7 +7,7 @@ This sandboxed plugin connects your [EmDash](https://emdashcms.com) site to [Col
 [self-hosted crypto payment gateway](https://github.com/Coldtill/self-hosted-crypto-payment-gateway) that runs on
 your own server.
 
-[Coldtill](https://coldtill.com) · [Docs](https://coldtill.com/docs/) · [Live demo dashboard](https://demo.coldtill.com/)
+[EmDash registry](https://plugins.emdashcms.com/plugins/@coldtill.com/coldtill) · [Coldtill](https://coldtill.com) · [Docs](https://coldtill.com/docs/) · [Live demo dashboard](https://demo.coldtill.com/)
 
 ![Coldtill checkout: choose a network and coin, then scan the QR code](https://coldtill.com/img/checkout-pay.webp)
 
