@@ -1,0 +1,66 @@
+{
+	"$schema": "./node_modules/@emdash-cms/plugin-cli/schemas/emdash-plugin.schema.json",
+
+	"slug": "coldtill",
+	"publisher": "did:plc:xappngqq5pvgufmk2rpuuq4o", // coldtill.eurosky.social
+
+	"license": "MIT",
+	"author": { "name": "Coldtill", "url": "https://coldtill.com" },
+	"security": { "email": "security@coldtill.com" },
+	"repo": "https://github.com/Coldtill/emdash-crypto-payment-gateway",
+
+	"name": "Coldtill Crypto Payments",
+	"description": "Sell products from your EmDash content for USDT, USDC, Bitcoin, Ethereum and 200+ coins, paid straight to your own wallets.",
+	"keywords": ["crypto payments", "bitcoin", "usdt", "ecommerce", "self-custody"],
+
+	"sections": {
+		"description": "Coldtill Crypto Payments connects your EmDash site to [Coldtill](https://coldtill.com), a self-hosted crypto payment gateway that runs on your own server. Customers pay in USDT, USDC, Bitcoin, Ethereum, Solana, Tron or 200+ other coins, straight to your own wallets. No processor holds or can freeze your funds.\n\n### Features\n\n- **Self-custody.** On Ethereum, Base, Polygon, BNB Chain, Tron and Solana each customer pays into a deposit contract that can only send to your cold wallet. Bitcoin goes to your own wallet's addresses.\n- **Products from your content.** Products live in an EmDash collection (`products` by default) with a USD `price` field. The price is always read on the server, never taken from the browser.\n- **Hosted checkout.** A Buy button sends the customer to your Coldtill checkout page.\n- **Signed webhooks.** Orders update from HMAC-SHA256 webhooks with a timestamp and a five-minute replay window. Duplicates never apply twice.\n- **Missed-webhook recovery.** When the customer comes back to your site, the storefront helper re-checks the payment with Coldtill.\n- **Safe by default.** An order is only marked paid when the Coldtill reference and the amount match. Partial payments are held for you to settle.\n- **Orders page** in the EmDash admin.\n\n### Getting started\n\n1. Install Coldtill on your server (the Free edition installs with one command, see [coldtill.com](https://coldtill.com)). It must be reachable over public `https`.\n2. In Coldtill, create a project API key under **API keys**.\n3. In this plugin's settings, enter your Coldtill URL and API key.\n4. In Coldtill under **Webhooks**, add the webhook URL shown on the plugin's **Coldtill orders** page and paste its signing secret into the plugin settings.\n5. Add a Buy button to your product pages with the storefront helper. See the [README](https://github.com/Coldtill/emdash-crypto-payment-gateway#readme).\n\nPrices are in USD. Coldtill cannot refund automatically: refunds are sent from your own wallet."
+	},
+
+	// Trust contract. Each merchant runs Coldtill on their own host, so the
+	// destination is configured at runtime and cannot be listed in allowedHosts.
+	// The sandbox still blocks private and loopback addresses.
+	"capabilities": ["content:read", "network:request:unrestricted"],
+	"allowedHosts": [],
+
+	"storage": {
+		"orders": {
+			"indexes": ["status", "createdAt", "productId", ["status", "createdAt"]],
+			"uniqueIndexes": ["coldtillReference"]
+		}
+	},
+
+	"admin": {
+		"settingsSchema": {
+			"coldtillUrl": {
+				"label": "Coldtill URL",
+				"description": "Your Coldtill site URL, for example https://pay.example.com. It must use https and be reachable from the internet.",
+				"type": "url",
+				"placeholder": "https://pay.example.com"
+			},
+			"apiKey": {
+				"label": "API key",
+				"description": "Project API key from Coldtill → API keys.",
+				"type": "secret"
+			},
+			"webhookSecret": {
+				"label": "Webhook signing secret",
+				"description": "In Coldtill → Webhooks, add the webhook URL shown on the Coldtill orders page, then paste its signing secret here.",
+				"type": "secret"
+			},
+			"productCollection": {
+				"label": "Product collection",
+				"description": "Slug of the EmDash collection that holds your products. Each product needs a number field named price (in USD).",
+				"type": "string",
+				"default": "products"
+			}
+		},
+		"pages": [{ "path": "/orders", "label": "Coldtill orders", "icon": "credit-card" }]
+	},
+
+	"release": {
+		"artifacts": {
+			"icon": { "file": "./icon.png" }
+		}
+	}
+}

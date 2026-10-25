@@ -1,0 +1,108 @@
+---
+import { getEmDashEntry } from "emdash";
+import { Image } from "emdash/ui";
+import {
+  COLDTILL_API,
+  formatUsd,
+  getProductCollection,
+  isBuyable,
+  type ProductData,
+} from "../../lib/coldtill";
+
+const { slug } = Astro.params;
+if (!slug) return Astro.redirect("/404");
+
+const collection = await getProductCollection(Astro.url.origin);
+const { entry: product, cacheHint } = await getEmDashEntry<string, ProductData>(collection, slug);
+if (!product || !isBuyable(product.data)) return Astro.redirect("/404");
+
+// The Coldtill "Return to store" button brings the buyer back with ?coldtill_order=...
+// Pages with that parameter are per-buyer, so don't cache them.
+const returning = Astro.url.searchParams.has("coldtill_order");
+if (Astro.cache?.enabled && !returning) Astro.cache.set(cacheHint);
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{product.data.name ?? product.data.title}</title>
+    <style is:global>
+      :root { color-scheme: light dark; }
+      body { margin: 0; font-family: system-ui, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <main class="product">
+      <a href="/products">← All products</a>
+
+      {returning && (
+        <p id="coldtill-status" class="status" role="status" aria-live="polite">Checking your payment...</p>
+      )}
+
+      {product.data.image && <Image image={product.data.image} alt={product.data.image.alt || product.data.name || ""} />}
+      <h1>{product.data.name ?? product.data.title}</h1>
+      <p class="price">{formatUsd(product.data.price)}</p>
+      {product.data.description && <p>{product.data.description}</p>}
+
+      <label for="email">Email for your receipt (optional)</label>
+      <input id="email" type="email" autocomplete="email" />
+      <label for="quantity">Quantity</label>
+      <input id="quantity" type="number" min="1" max="100" value="1" />
+
+      <button
+        id="buy"
+        type="button"
+        data-coldtill-checkout
+        data-product-id={product.data.id}
+        data-checkout-api={COLDTILL_API}
+        data-email-input="#email"
+      >
+        Buy with crypto
+      </button>
+      <p class="muted">You'll pay on a secure Coldtill checkout page. Funds go straight to the merchant's wallet.</p>
+    </main>
+
+    <script>
+      import { initializeCheckoutButtons, verifyCheckout } from "../../lib/coldtill-storefront";
+
+      const buy = document.querySelector<HTMLButtonElement>("#buy");
+      const quantity = document.querySelector<HTMLInputElement>("#quantity");
+      // Keep data-quantity in sync so the button helper sends it.
+      quantity?.addEventListener("input", () => {
+        if (buy) buy.dataset.quantity = quantity.value;
+      });
+      initializeCheckoutButtons();
+
+      const status = document.querySelector<HTMLElement>("#coldtill-status");
+      if (status && buy?.dataset.checkoutApi) {
+        const messages = {
+          paid: "Thank you! Your payment was received.",
+          partial: "We received part of your payment and are waiting for the rest.",
+          pending: "Your payment hasn't confirmed yet. This page will update when you reload it.",
+          cancelled: "This payment expired or was replaced. You can start a new checkout below.",
+        };
+        verifyCheckout({ apiBase: buy.dataset.checkoutApi })
+          .then((result) => {
+            status.textContent = result ? messages[result.status] : "We couldn't find that order.";
+          })
+          .catch(() => {
+            status.textContent = "We couldn't check your payment right now. Please reload the page.";
+          });
+      }
+    </script>
+
+    <style>
+      .product { width: min(100% - 2rem, 640px); margin: 0 auto; padding: 2rem 0 4rem; display: grid; gap: 0.75rem; }
+      .product a { color: inherit; }
+      .product :global(img) { width: 100%; height: auto; border-radius: 10px; }
+      h1 { margin: 0.5rem 0 0; }
+      .price { font-size: 1.5rem; font-weight: 700; margin: 0; }
+      .muted { color: #6b7280; font-size: 0.875rem; }
+      .status { padding: 0.75rem 1rem; border: 1px solid #86efac; border-radius: 8px; background: light-dark(#f0fdf4, #052e16); }
+      input { padding: 0.6rem; font: inherit; border: 1px solid #d1d5db; border-radius: 6px; }
+      button { padding: 0.85rem; border: 0; border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer; background: light-dark(#111827, #fff); color: light-dark(#fff, #111827); }
+      button:disabled { opacity: 0.6; cursor: wait; }
+    </style>
+  </body>
+</html>

@@ -1,0 +1,74 @@
+---
+import { getEmDashCollection } from "emdash";
+import { Image } from "emdash/ui";
+import {
+  COLDTILL_API,
+  formatUsd,
+  getProductCollection,
+  isBuyable,
+  type ProductData,
+} from "../../lib/coldtill";
+
+const collection = await getProductCollection(Astro.url.origin);
+const { entries, error, cacheHint } = await getEmDashCollection<string, ProductData>(collection, {
+  status: "published",
+});
+if (error) console.error("Unable to load products:", error);
+if (Astro.cache?.enabled && cacheHint) Astro.cache.set(cacheHint);
+
+const products = (entries ?? []).filter((p) => isBuyable(p.data));
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Products</title>
+    <style is:global>
+      :root { color-scheme: light dark; }
+      body { margin: 0; font-family: system-ui, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <main class="shop">
+      <h1>Products</h1>
+      <p class="muted">Pay with USDT, USDC, Bitcoin, Ethereum and more.</p>
+
+      {products.length === 0 && <p>No products yet.</p>}
+
+      <ul class="grid">
+        {products.map((p) => {
+          const href = `/products/${encodeURIComponent(String(p.data.slug ?? p.id))}`;
+          return (
+          <li class="card">
+            {p.data.image && <Image image={p.data.image} alt={p.data.image.alt || p.data.name || ""} />}
+            <h2><a href={href}>{p.data.name ?? p.data.title}</a></h2>
+            <p class="price">{formatUsd(p.data.price)}</p>
+            <button type="button" data-coldtill-checkout data-product-id={p.data.id} data-checkout-api={COLDTILL_API} data-return-path={href}>
+              Buy with crypto
+            </button>
+          </li>
+          );
+        })}
+      </ul>
+    </main>
+
+    <script>
+      import { initializeCheckoutButtons } from "../../lib/coldtill-storefront";
+      initializeCheckoutButtons();
+    </script>
+
+    <style>
+      .shop { width: min(100% - 2rem, 1100px); margin: 0 auto; padding: 2rem 0 4rem; }
+      .muted { color: #6b7280; }
+      .grid { list-style: none; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+      .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 1rem; }
+      .card :global(img) { width: 100%; height: auto; border-radius: 6px; }
+      .card h2 { font-size: 1.1rem; margin: 0.75rem 0 0.25rem; }
+      .card a { color: inherit; }
+      .price { font-weight: 700; }
+      button { width: 100%; padding: 0.75rem; border: 0; border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer; background: light-dark(#111827, #fff); color: light-dark(#fff, #111827); }
+      button:disabled { opacity: 0.6; cursor: wait; }
+    </style>
+  </body>
+</html>
