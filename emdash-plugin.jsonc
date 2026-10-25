@@ -2,7 +2,7 @@
 	"$schema": "./node_modules/@emdash-cms/plugin-cli/schemas/emdash-plugin.schema.json",
 
 	"slug": "coldtill",
-	"publisher": "did:plc:xappngqq5pvgufmk2rpuuq4o", // coldtill.eurosky.social
+	"publisher": "did:plc:xappngqq5pvgufmk2rpuuq4o", // @coldtill.com
 
 	"license": "MIT",
 	"author": { "name": "Coldtill", "url": "https://coldtill.com" },

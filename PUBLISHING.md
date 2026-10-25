@@ -7,15 +7,17 @@ uses the pinned CLI. Reference: <https://docs.emdashcms.com/plugins/creating-plu
 
 ## Identity
 
-The package is published under the Atmosphere account **@coldtill.eurosky.social**. The manifest pins its DID:
+The package is published under the Atmosphere account **@coldtill.com**. The manifest pins its DID:
 
 ```jsonc
-"publisher": "did:plc:xappngqq5pvgufmk2rpuuq4o", // coldtill.eurosky.social
+"publisher": "did:plc:xappngqq5pvgufmk2rpuuq4o", // coldtill.com
 ```
 
-The DID is what the registry and EmDash use, so the handle can later be switched to `coldtill.com` (in the
-account's settings, with a DNS or `/.well-known/atproto-did` proof) without changing the manifest, the package, or
-the plugin id that installed sites use (`r_iq46b5ezsks5zhaf`, derived from the DID and the slug `coldtill`). Never
+The DID is what the registry and EmDash use. The account's handle was switched from `coldtill.com` to
+`coldtill.com` (proved by the `_atproto.coldtill.com` TXT record and `https://coldtill.com/.well-known/atproto-did`);
+that changed nothing in the manifest, the package, or the plugin id that installed sites use (`r_iq46b5ezsks5zhaf`,
+derived from the DID and the slug `coldtill`). Keep both proofs in place, or the handle stops resolving. The listing
+is at <https://plugins.emdashcms.com/plugins/@coldtill.com/coldtill>. Never
 change `publisher` or `slug` after the first release: it would become a different package.
 
 ## Before every release
@@ -43,7 +45,7 @@ change `publisher` or `slug` after the first release: it would become a differen
    password.
 
    ```sh
-   pnpm exec emdash-plugin login coldtill.eurosky.social
+   pnpm exec emdash-plugin login coldtill.com
    pnpm exec emdash-plugin whoami   # the active session must be did:plc:xappngqq5pvgufmk2rpuuq4o
    ```
 
@@ -64,7 +66,7 @@ change `publisher` or `slug` after the first release: it would become a differen
 3. Watch the listing checks. The CLI prints the exact command; it looks like:
 
    ```sh
-   pnpm exec emdash-plugin info coldtill.eurosky.social coldtill --version 1.0.0 --watch
+   pnpm exec emdash-plugin info coldtill.com coldtill --version 1.0.0 --watch
    ```
 
    Until the package is approved this shows only the check state. Once approved it prints the public plugin page.
@@ -84,7 +86,7 @@ Automated releases build in GitHub Actions and publish through the EmDash releas
 credential is stored in the repository. They need the GitHub repository to be **public**, with this plugin at its
 root and `pnpm-lock.yaml` committed (the workflow runs `pnpm install --frozen-lockfile`).
 
-1. Log in as above (`emdash-plugin login coldtill.eurosky.social`).
+1. Log in as above (`emdash-plugin login coldtill.com`).
 2. In a clone of `Coldtill/emdash-crypto-payment-gateway`, run:
 
    ```sh
@@ -99,7 +101,7 @@ root and `pnpm-lock.yaml` committed (the workflow runs `pnpm install --frozen-lo
 
    Non-interactive: `pnpm exec emdash-plugin release setup --yes` (add `--provenance optional` to keep local
    publishing). The workflow file is not committed or pushed for you; review and commit it.
-3. Open <https://releases.emdashcms.com/publisher>, sign in as `coldtill.eurosky.social` and select
+3. Open <https://releases.emdashcms.com/publisher>, sign in as `coldtill.com` and select
    **Authorize publishing**. Release approvals need a passkey on that account.
 4. Release by pushing a tag of the form `<slug>@<version>`:
 
